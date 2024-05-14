@@ -1,1 +1,65 @@
-Hi 
+Create database and table also value insertion:
+
+CREATE DATABASE Bank;
+
+CREATE TABLE branch (
+branch_id INT PRIMARY KEY AUTO_INCREMENT,
+branch_name VARCHAR(50) NOT NULL,
+branch_city VARCHAR(50) NOT NULL,
+assets DECIMAL(15,2) NOT NULL
+);
+
+CREATE TABLE customer (
+customer_id INT,
+customer_name VARCHAR(100) NOT NULL,
+address VARCHAR(100) NOT NULL,
+email VARCHAR(100),
+branch_name varchar(15) PRIMARY KEY,
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+CREATE TABLE account (
+account_number VARCHAR(13),
+branch_name VARCHAR(50) NOT NULL,
+balance INTEGER PRIMARY KEY,
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+
+CREATE TABLE loan (
+loan_number VARCHAR(13) PRIMARY KEY,
+branch_name VARCHAR(50) NOT NULL,
+amount INTEGER NOT NULL,
+FOREIGN KEY (branch_name) REFERENCES branch(branch_name)
+);
+
+CREATE TABLE depositor (
+customer_name VARCHAR(100) NOT NULL,
+account_number VARCHAR(13) NOT NULL,
+FOREIGN KEY (customer_name) REFERENCES customer(customer_name),
+FOREIGN KEY (account_number) REFERENCES account(account_number),
+PRIMARY KEY (customer_name, account_number)
+);
+
+CREATE TABLE borrower (
+customer_name VARCHAR(100) NOT NULL,
+loan_number VARCHAR(13) NOT NULL,
+
+FOREIGN KEY (customer_name) REFERENCES customer(customer_name),
+FOREIGN KEY (loan_number) REFERENCES loan(loan_number),
+PRIMARY KEY (customer_name, loan_number)
+);
+
+INSERT INTO branch (branch_name, branch_city, assets) VALUES
+('dhaka', 'dhaka', 7500000.00),
+('agargao', 'mirpur', 8000000.00),
+('mirpur_1 Branch', 'mirpur', 9000000.00),
+('mirpur_2', 'mirpur', 7000000.00),
+('mirpur_10', 'mirpur', 6000000.00),
+('mirpur_11', 'mirpur', 5000000.00),
+('mirpur_14', 'mirpur', 4000000.00),
+('pollobi', 'mirpur', 3000000.00),
+('sewrapara', 'mirpur', 2000000.00),
+('rupgonj', 'narayangonj', 8000000.00);
+
+____Change a column name:
+
+ALTER TABLE customer CHANGE COLUMN customer_name customer_city varchar(15);
