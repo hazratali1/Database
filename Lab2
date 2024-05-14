@@ -1,0 +1,43 @@
+Querying and Filtering data in MySQL Table:
+
+Create table classes:
+CREATE TABLE Classes (
+class_id INT PRIMARY KEY,
+class_name VARCHAR(50) NOT NULL,
+teacher_name VARCHAR(50) NOT NULL
+);
+
+Include primary key and foreign key relationship:
+CREATE TABLE Students (
+student_id INT PRIMARY KEY,
+student_name VARCHAR(50) NOT NULL,
+student_class INT,
+FOREIGN KEY (student_class) REFERENCES Classes(class_id)
+);
+
+Insert multiple values using a single query:
+INSERT INTO Classes (class_id, class_name, teacher_name)
+VALUES (1, 'Math', 'Ali'),
+(2, 'Science', 'Hazrat'),
+(3, 'English', 'Hmel'),
+(4,'Bangla','Abdur'),
+(5,'physics','Rhaman'),
+(6,'Biology','Ferdous'),
+(7,'Chemistry','Opu'),
+(8,'Database','Sabbir_Sir'),
+(9,'Operating','Raj'),
+(10,'Programming','Rased');
+
+Remove duplicate data:
+DELETE FROM Students
+WHERE student_id IN (SELECT student_id FROM (
+SELECT student_id, COUNT(*) AS cnt
+FROM Students
+GROUP BY student_name
+HAVING cnt > 1
+) AS dup_data);
+
+Search and Update using the WHERE keyword:
+SELECT * FROM Students WHERE student_class = 1;
+UPDATE Students SET student_class = 2 WHERE student_name = 'Hazrat Ali';
+
