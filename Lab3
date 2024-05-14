@@ -1,0 +1,87 @@
+Querying and Filtering data in MySQL Table (Extended) :
+
+• Previous Table:
+CREATE TABLE branch (
+branch_name varchar(20),
+branch_city varchar (20),
+assets int (5)
+);
+
+CREATE TABLE customer_ (
+customer_ID int PRIMARY KEY,
+customer_name varchar(20),
+customer_city int (5)
+);
+
+CREATE TABLE account (
+acount_number int PRIMARY KEY,
+
+branch_name varchar(20),
+blance int (10)
+);
+CREATE TABLE loan (
+loan_number int PRIMARY KEY,
+branch_name varchar(20),
+ammount int (10)
+);
+CREATE TABLE depositor (
+customer_name varchar(20),
+acount_number int (10)PRIMARY KEY,
+FOREIGN KEY (acount_number) REFERENCES account (acount_number)
+);
+
+CREATE TABLE brrower (
+customer_name varchar(20),
+acount_number int (10)PRIMARY KEY,
+FOREIGN KEY (acount_number) REFERENCES account (acount_number)
+);
+• Values insert:
+INSERT INTO `account`(`acount_number`, `branch_name`, `blance`) VALUES
+('1','mirpur','5000'),
+('2','shabag','6000'),
+('3','pollobi','7000'),
+('4','rupgonj','8000'),
+('5','dhaka','9000');
+
+• Query with primary key, query with condition, query with comparison operation.
+
+With primary key.
+SELECT * FROM account
+WHERE acount_number = 1;
+
+with condition.
+SELECT * FROM account
+WHERE blance > 100 AND branch_name = 'mirpur';
+
+with comparison operation.
+SELECT * FROM account
+WHERE blance >= '3000' AND branch_name != 'dhaka';
+
+With order by.
+SELECT * FROM customer_ ORDER BY customer_name ASC;
+
+With Not Between.
+SELECT * FROM customer_ WHERE customer_ID NOT BETWEEN 20 AND 30;
+
+With in and not in.
+SELECT * FROM customer_ WHERE customer_ID IN (1, 3, 5);
+
+With Like.
+SELECT * FROM customer_ WHERE customer_name LIKE 'Ha%';
+
+Write a SQL query for searching customers who have 3000 to 5000 loan.
+SELECT loan_number, branch_name
+FROM loan
+WHERE ammount BETWEEN 3000 AND 6000;
+
+Find the account_Id of all branches located Between mirpur and rupgonj.
+SELECT acount_number
+FROM account
+WHERE branch_name BETWEEN 'mirpur' AND 'rupgonj'
+ORDER BY branch_name ASC;
+
+To find all loan holders who have ‘a’ alphabets in their name or they have ‘r’ alphabets in
+the beginning of the names.
+SELECT *
+FROM customer_
+WHERE customer_name LIKE '%a%' OR customer_name LIKE 'r%';
