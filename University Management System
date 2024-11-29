@@ -1,0 +1,264 @@
+CREATE DATABASE green_university;
+
+CREATE TABLE department (
+    dept_name VARCHAR(50) PRIMARY KEY,
+    building VARCHAR(50),
+    budget FLOAT
+);
+
+CREATE TABLE course (
+    course_id VARCHAR(8) PRIMARY KEY,
+    title VARCHAR(100),
+    credits INT
+);
+
+CREATE TABLE instructor (
+    ID INT PRIMARY KEY,
+    name VARCHAR(50),
+    salary FLOAT,
+    dept_name VARCHAR(50),
+    FOREIGN KEY (dept_name) REFERENCES department(dept_name)
+);
+
+CREATE TABLE student (
+    ID INT PRIMARY KEY,
+    name VARCHAR(50),
+    tot_cred INT,
+    dept_name VARCHAR(50),
+    FOREIGN KEY (dept_name) REFERENCES department(dept_name)
+);
+
+CREATE TABLE advisor (
+    s_id INT,
+    i_id INT,
+    PRIMARY KEY (s_id, i_id),
+    FOREIGN KEY (s_id) REFERENCES student(ID),
+    FOREIGN KEY (i_id) REFERENCES instructor(ID)
+);
+
+CREATE TABLE section (
+    sec_id VARCHAR(8),
+    course_id VARCHAR(8),
+    semester VARCHAR(6),
+    year INT,
+    PRIMARY KEY (sec_id, course_id, semester, year),
+    FOREIGN KEY (course_id) REFERENCES course(course_id)
+);
+
+CREATE TABLE time_slot (
+    time_slot_id VARCHAR(4) PRIMARY KEY,
+    day VARCHAR(3),
+    start_time TIME,
+    end_time TIME
+);
+
+CREATE TABLE classroom (
+    building VARCHAR(50),
+    room_number VARCHAR(10),
+    capacity INT,
+    PRIMARY KEY (building, room_number)
+);
+
+
+CREATE TABLE teaches (
+    ID INT,
+    sec_id VARCHAR(8),
+    course_id VARCHAR(8),
+    semester VARCHAR(6),
+    year INT,
+    PRIMARY KEY (ID, sec_id, course_id, semester, year),
+    FOREIGN KEY (ID) REFERENCES instructor(ID),
+    FOREIGN KEY (sec_id, course_id, semester, year) REFERENCES section(sec_id, course_id, semester, year)
+);
+
+CREATE TABLE takes (
+    ID INT,
+    sec_id VARCHAR(8),
+    course_id VARCHAR(8),
+    semester VARCHAR(6),
+    year INT,
+    grade CHAR(2),
+    PRIMARY KEY (ID, sec_id, course_id, semester, year),
+    FOREIGN KEY (ID) REFERENCES student(ID),
+    FOREIGN KEY (sec_id, course_id, semester, year) REFERENCES section(sec_id, course_id, semester, year)
+);
+
+
+>>>>>>>>>>trigger for classroom>>>
+
+DELIMITER //
+
+CREATE TRIGGER enforce_classroom_capacity
+BEFORE INSERT ON classroom
+FOR EACH ROW
+BEGIN
+    IF NEW.capacity > 45 THEN
+        SET NEW.capacity = 45;
+    END IF;
+END //
+
+DELIMITER ;
+>>>>>>trigger for course>>>>
+
+DELIMITER //
+
+CREATE TRIGGER enforce_course_credits
+BEFORE INSERT ON course
+FOR EACH ROW
+BEGIN
+    IF NEW.credits > 3 THEN
+        SET NEW.credits = 3;
+    END IF;
+END //
+
+DELIMITER ;
+
+>>>>>>trigger for time solt>>>>>>
+
+DELIMITER //
+
+CREATE TRIGGER enforce_one_hour_duration
+BEFORE INSERT ON time_slot
+FOR EACH ROW
+BEGIN
+    SET NEW.end_time = ADDTIME(NEW.start_time, '01:00:00');
+END //
+
+DELIMITER ;
+
+>>>>>trigger for takes table>>>>
+
+DELIMITER //
+
+CREATE TRIGGER update_total_credits
+AFTER INSERT ON takes
+FOR EACH ROW
+BEGIN
+    DECLARE course_credits INT;
+    SELECT credits INTO course_credits FROM course WHERE course_id = NEW.course_id;
+    UPDATE student SET tot_cred = tot_cred + course_credits WHERE ID = NEW.ID;
+END //
+
+DELIMITER ;
+
+>>>>>trigger for advisor table>>>
+
+
+DELIMITER //
+
+CREATE TRIGGER ensure_single_advisor
+BEFORE INSERT ON advisor
+FOR EACH ROW
+BEGIN
+    
+    IF (SELECT COUNT(*) FROM advisor WHERE s_id = NEW.s_id) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A student can have only one advisor.';
+    END IF;
+END //
+
+
+CREATE TRIGGER ensure_single_advisor_update
+BEFORE UPDATE ON advisor
+FOR EACH ROW
+BEGIN
+    
+    IF (SELECT COUNT(*) FROM advisor WHERE s_id = NEW.s_id AND i_id <> OLD.i_id) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'A student can have only one advisor.';
+    END IF;
+END //
+
+DELIMITER ;
+
+
+>>>>>values for department table
+
+INSERT INTO department (dept_name, building, budget) VALUES
+('CSE', 'BuildingA', 500000),
+('EEE', 'BuildingB', 400000),
+('BBA', 'BuildingC', 300000),
+('ME', 'BuildingD', 350000),
+('CE', 'BuildingE', 450000);
+
+>>>>values for course table
+
+INSERT INTO course (course_id, title,credits) VALUES
+('CSE101', 'Introduction to Programming', 3),
+('EEE101', 'Introduction to Electrical Engineering', 3),
+('BBA101', 'Introduction to Business', 3),
+('CSE201', 'Data Structures', 3),
+('EEE201', 'Circuits', 3);
+
+>>>>>>values for instructor table
+
+INSERT INTO instructor (ID, name, dept_name, salary) VALUES
+(1, 'Abdul Rahman', 'CSE', 60000),
+(2, 'Sadia Akhtar', 'EEE', 55000),
+(3, 'Kamal Ahmed', 'BBA', 50000),
+(4, 'Fatima Islam', 'CSE', 65000),
+(5, 'Rahim Khan', 'EEE', 60000);
+
+>>>>>values for student table
+
+INSERT INTO student (ID, name, dept_name, tot_cred) VALUES
+(1, 'Student1', 'CSE', 0),
+(2, 'Student2', 'EEE', 0),
+(3, 'Student3', 'BBA', 0),
+(4, 'Student4', 'CSE', 0),
+(5, 'Student5', 'EEE', 0);
+
+>>>>>values for advisor table
+
+INSERT INTO advisor (s_id, i_id) VALUES
+(1, 1),  
+(2, 2),  
+(3, 3),  
+(4, 4),  
+(5, 1);  
+
+>>>>values for section table
+
+INSERT INTO section (course_id, sec_id, semester, year) VALUES
+('CSE101', '1', 'Fall', 2024),
+('EEE101', '1', 'Fall', 2024),
+('BBA101', '1', 'Fall', 2024),
+('CSE201', '1', 'Spring', 2024),
+('EEE201', '1', 'Spring', 2024);
+
+>>>>>>values for time_solt table
+
+INSERT INTO time_slot (time_slot_id, day, start_time, end_time) VALUES
+('TS1', 'Monday', '09:00:00', '10:00:00'),
+('TS2', 'Tuesday', '10:00:00', '11:00:00'),
+('TS3', 'Wednesday', '11:00:00', '12:00:00'),
+('TS4', 'Thursday', '12:00:00', '13:00:00'),
+('TS5', 'Friday', '13:00:00', '14:00:00');
+
+>>>>>values for classroom table
+
+INSERT INTO classroom (building, room_number, capacity) VALUES
+('BuildingA', '101', 45),
+('BuildingB', '102', 45),
+('BuildingC', '103', 45),
+('BuildingD', '104', 45),
+('BuildingE', '105', 45);
+
+
+>>>>>values for teaches table
+
+INSERT INTO teaches (ID, course_id, sec_id, semester, year) VALUES
+(1, 'CSE101', '1', 'Fall', 2024),
+(2, 'EEE101', '1', 'Fall', 2024),
+(3, 'BBA101', '1', 'Fall', 2024),
+(4, 'CSE201', '1', 'Spring', 2024),
+(5, 'EEE201', '1', 'Spring', 2024);
+
+
+>>>>>>values for takes table
+
+INSERT INTO takes (ID, course_id, sec_id, semester, year, grade) VALUES
+(1, 'CSE101', '1', 'Fall', 2024, 'A'),
+(2, 'EEE101', '1', 'Fall', 2024, 'B'),
+(3, 'BBA101', '1', 'Fall', 2024, 'A'),
+(4, 'CSE201', '1', 'Spring', 2024, 'B'),
+(5, 'EEE201', '1', 'Spring', 2024, 'C');
+
